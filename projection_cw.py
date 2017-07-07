@@ -314,22 +314,22 @@ print 'red rms = %g ns'%redRMS
 
 # read in GBT file
 if opts.bestcase:
-    gbtfile = np.genfromtxt('gbt_pulsar_file.txt', dtype='S42')
-    aofile = np.genfromtxt('ao_pulsar_file.txt', dtype='S42')
-    gbtmed = np.loadtxt('gbt_med_rms_vals.txt')
+    gbtfile = np.genfromtxt('files/gbt_pulsar_file.txt', dtype='S42')
+    aofile = np.genfromtxt('files/ao_pulsar_file.txt', dtype='S42')
+    gbtmed = np.loadtxt('files/gbt_med_rms_vals.txt')
 elif opts.worstcase:
-    gbtfile = np.genfromtxt('gbt_pulsar_file_worst.txt', dtype='S42')
-    aofile = np.genfromtxt('ao_pulsar_file_worst.txt', dtype='S42')
-    gbtmed = np.loadtxt('gbt_med_rms_vals_worst.txt')
+    gbtfile = np.genfromtxt('files/gbt_pulsar_file_worst.txt', dtype='S42')
+    aofile = np.genfromtxt('files/ao_pulsar_file_worst.txt', dtype='S42')
+    gbtmed = np.loadtxt('files/gbt_med_rms_vals_worst.txt')
 elif opts.statuscase:
-    gbtfile = np.genfromtxt('gbt_pulsar_file_status.txt', dtype='S42')
-    aofile = np.genfromtxt('ao_pulsar_file_status.txt', dtype='S42')
-    gbtmed = np.loadtxt('gbt_med_rms_vals_status.txt')
-    aomed = np.loadtxt('ao_med_rms_vals_status.txt')
+    gbtfile = np.genfromtxt('files/gbt_pulsar_file_status.txt', dtype='S42')
+    aofile = np.genfromtxt('files/ao_pulsar_file_status.txt', dtype='S42')
+    gbtmed = np.loadtxt('files/gbt_med_rms_vals_status.txt')
+    aomed = np.loadtxt('files/ao_med_rms_vals_status.txt')
 elif opts.cwcase:
-    gbtfile = np.genfromtxt('gbt_pulsar_file_cw.txt', dtype='S42')
-    aofile = np.genfromtxt('ao_pulsar_file_cw.txt', dtype='S42')
-    gbtmed = np.loadtxt('gbt_med_rms_vals_cw.txt')
+    gbtfile = np.genfromtxt('files/gbt_pulsar_file_cw.txt', dtype='S42')
+    aofile = np.genfromtxt('files/ao_pulsar_file_cw.txt', dtype='S42')
+    gbtmed = np.loadtxt('files/gbt_med_rms_vals_cw.txt')
 
 gbtpsrlist = []
 for gp in gbtfile:
@@ -360,8 +360,8 @@ if opts.statuscase:
 
 # red pulsar list
 if opts.redFromFile:
-    red_names = np.loadtxt('red_pulsars.txt', dtype='S42', usecols=[0])
-    red_vals = np.loadtxt('red_pulsars.txt', usecols=[1,2])
+    red_names = np.loadtxt('files/red_pulsars.txt', dtype='S42', usecols=[0])
+    red_vals = np.loadtxt('files/red_pulsars.txt', usecols=[1,2])
     red_dict = {}
     for rn, rv in zip(red_names, red_vals):
         red_dict[rn] = rv
