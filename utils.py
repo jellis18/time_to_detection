@@ -28,7 +28,7 @@ def compute_snr_mark6(x, Nvec, Tmat, cf):
 
     # white noise term
     Nix = x / Nvec
-    xNix = np.dot(x, Nix) 
+    xNix = np.dot(x, Nix)
     TNix = np.dot(Tmat.T, Nix)
 
     SigmaTNix = sl.cho_solve(cf, TNix)
@@ -36,7 +36,7 @@ def compute_snr_mark6(x, Nvec, Tmat, cf):
     ret = xNix - np.dot(TNix, SigmaTNix)
     #print xNix,  np.dot(TNix, SigmaTNix)
 
-    return np.sqrt(ret) 
+    return np.sqrt(ret)
 
 def compute_snr_mark9(x, Nvec, Tmat, Qamp, Uinds, Sigma):
     """
@@ -68,7 +68,7 @@ def get_snr_prior(model, snr0):
         if model.likfunc == 'mark9':
             snr += innerProduct_rr9(s, s, p.Nvec, p.Ttmat,
                                             model.Sigma[nfref:(nfref+nf),
-                                                        nfref:(nfref+nf)], 
+                                                        nfref:(nfref+nf)],
                                              p.Qamp, p.Uinds)
         else:
             try:
@@ -90,7 +90,7 @@ def get_snr_prior(model, snr0):
 def innerProduct_rr9(x, y, Nvec, Tmat, Sigma, Qamp, Uinds):
     """
     Compute inner product using rank-reduced
-    approximations for red noise/jitter 
+    approximations for red noise/jitter
 
     Compute: x^T N^{-1} y - x^T N^{-1} T \Sigma^{-1} T^T N^{-1} y
 
@@ -117,7 +117,7 @@ def innerProduct_rr9(x, y, Nvec, Tmat, Sigma, Qamp, Uinds):
 def innerProduct_rr(x, y, Nvec, Tmat, Sigma, TNx=None, TNy=None):
     """
     Compute inner product using rank-reduced
-    approximations for red noise/jitter 
+    approximations for red noise/jitter
 
     Compute: x^T N^{-1} y - x^T N^{-1} T \Sigma^{-1} T^T N^{-1} y
 
@@ -137,8 +137,8 @@ def innerProduct_rr(x, y, Nvec, Tmat, Sigma, TNx=None, TNy=None):
     Ni = 1/Nvec
     xNy = np.dot(x*Ni, y)
     Nx, Ny = x*Ni, y*Ni
-    
-    if TNx == None and TNy == None: 
+
+    if TNx == None and TNy == None:
         TNx = np.dot(Tmat.T, Nx)
         TNy = np.dot(Tmat.T, Ny)
 
@@ -152,9 +152,9 @@ def innerProduct_rr(x, y, Nvec, Tmat, Sigma, TNx=None, TNy=None):
 
 # compute f_p statistic
 def fpStat(psr, f0):
-    """ 
+    """
     Computes the Fp-statistic as defined in Ellis, Siemens, Creighton (2012)
-    
+
     :param psr: List of pulsar object instances
     :param f0: Gravitational wave frequency
 
@@ -176,13 +176,13 @@ def fpStat(psr, f0):
         A[1,:] = 1./f0**(1./3.) * np.cos(2*np.pi*f0*p.toas)
 
         N = np.array([np.dot(A[0,:], np.dot(p.invCov, p.residuals)), \
-                      np.dot(A[1,:], np.dot(p.invCov, p.residuals))]) 
-        
+                      np.dot(A[1,:], np.dot(p.invCov, p.residuals))])
+
         # define M matrix M_ij=(A_i|A_j)
         for jj in range(2):
             for kk in range(2):
                 M[jj,kk] = np.dot(A[jj,:], np.dot(p.invCov, A[kk,:]))
-        
+
         # take inverse of M
         Minv = np.linalg.inv(M)
         fstat += 0.5 * np.dot(N, np.dot(Minv, N))
@@ -192,9 +192,9 @@ def fpStat(psr, f0):
 
 # compute f_e-statistic
 def feStat(psr, gwtheta, gwphi, f0):
-    """ 
+    """
     Computes the F-statistic as defined in Ellis, Siemens, Creighton (2012)
-    
+
     :param psr: List of pulsar object instances
     :param gwtheta: GW polar angle
     :param gwphi: GW azimuthal angle
@@ -203,7 +203,7 @@ def feStat(psr, gwtheta, gwphi, f0):
     :return: Value of the Fe statistic evaluated at gwtheta, phi, f0
 
     """
-    
+
     npsr = len(psr)
     N = np.zeros(4)
     M = np.zeros((4,4))
@@ -221,7 +221,7 @@ def feStat(psr, gwtheta, gwphi, f0):
         N += np.array([np.dot(A[0,:], np.dot(p.invCov, p.res)), \
                         np.dot(A[1,:], np.dot(p.invCov, p.res)), \
                         np.dot(A[2,:], np.dot(p.invCov, p.res)), \
-                        np.dot(A[3,:], np.dot(p.invCov, p.res))]) 
+                        np.dot(A[3,:], np.dot(p.invCov, p.res))])
 
         M += np.dot(A, np.dot(p.invCov, A.T))
 
@@ -244,7 +244,7 @@ def createAntennaPatternFuncs(psr, gwtheta, gwphi):
 
     :return: (fplus, fcross, cosMu), where fplus and fcross
              are the plus and cross antenna pattern functions
-             and cosMu is the cosine of the angle between the 
+             and cosMu is the cosine of the angle between the
              pulsar and the GW source.
     """
 
@@ -276,7 +276,7 @@ def glitch_signal(gtime, gamp, gsign, t):
     epoch = gtime * 86400
 
     # Return the time-series for the pulsar
-    return amp * s * heaviside(t - epoch) * (t - epoch) 
+    return amp * s * heaviside(t - epoch) * (t - epoch)
 
 def bwmsignal(parameters, raj, decj, t, corr='gr'):
     """
@@ -301,7 +301,7 @@ def bwmsignal(parameters, raj, decj, t, corr='gr'):
         gwphi = parameters[2]
         gwdec = np.pi/2-parameters[3]
         gwpol = parameters[4]
-    
+
     if corr == 'gr':
         pol = AntennaPattern(raj, decj, gwphi, gwdec, gwpol)
     elif corr == 'mono':
@@ -380,7 +380,7 @@ def DipoleAntennaPattern(rajp, decjp, raj, decj, pol):
 def createResiduals(psr, gwtheta, gwphi, mc, dist, fgw, phase0, psi, inc, pdist=None, \
                         pphase=None, psrTerm=True, evolve=False, phase_approx=True):
     """
-    Function to create GW incuced residuals from a SMBMB as 
+    Function to create GW incuced residuals from a SMBMB as
     defined in Ellis et. al 2012,2013.
 
     :param psr: pulsar object for single pulsar
@@ -394,7 +394,7 @@ def createResiduals(psr, gwtheta, gwphi, mc, dist, fgw, phase0, psi, inc, pdist=
     :param inc: Inclination of GW source [radians]
     :param pdist: Pulsar distance to use other than those in psr [kpc]
     :param pphase: Use pulsar phase to determine distance [radian]
-    :param psrTerm: Option to include pulsar term [boolean] 
+    :param psrTerm: Option to include pulsar term [boolean]
     :param evolve: Option to exclude evolution [boolean]
 
     :return: Vector of induced residuals
@@ -403,20 +403,20 @@ def createResiduals(psr, gwtheta, gwphi, mc, dist, fgw, phase0, psi, inc, pdist=
 
     # get antenna pattern funcs and cosMu
     fplus, fcross, cosMu = createAntennaPatternFuncs(psr, gwtheta, gwphi)
-    
+
     # get values from pulsar object
     toas = psr.toas
     if pdist is None and pphase is None:
         pdist = psr.dist
     elif pdist is None and pphase is not None:
         pdist = pphase/(2*np.pi*fgw*(1-cosMu)) / KPC2S
-   
+
 
     # convert units
     mc *= SOLAR2S         # convert from solar masses to seconds
     dist *= MPC2S    # convert from Mpc to seconds
     pdist *= KPC2S   # convert from kpc to seconds
-    
+
     # get pulsar time
     tp = toas-pdist*(1-cosMu)
 
@@ -435,14 +435,14 @@ def createResiduals(psr, gwtheta, gwphi, mc, dist, fgw, phase0, psi, inc, pdist=
         # calculate time dependent phase
         phase = phase0 + 1/32/mc**(5/3) * (w0**(-5/3) - omega**(-5/3))
         phase_p = phase0 + 1/32/mc**(5/3) * (w0**(-5/3) - omega_p**(-5/3))
-    
+
 
     elif phase_approx:
-        
+
         # monochromatic
         omega = np.pi*fgw
         omega_p = w0 * (1 + 256/5 * mc**(5/3) * w0**(8/3) * pdist*(1-cosMu))**(-3/8)
-        
+
         # phases
         phase = phase0 + omega * toas
         if pphase is not None:
@@ -450,18 +450,18 @@ def createResiduals(psr, gwtheta, gwphi, mc, dist, fgw, phase0, psi, inc, pdist=
             phase_p = pphase[ct] + omega_p * toas
         else:
             phase_p = phase0 + 1/32/mc**(5/3) * (w0**(-5/3) - omega_p**(-5/3)) + omega_p*toas
-          
+
     # no evolution
-    else: 
-        
+    else:
+
         # monochromatic
         omega = np.pi*fgw
         omega_p = omega
-        
+
         # phases
         phase = phase0 + omega * toas
         phase_p = phase0 + omega * tp
-        
+
 
     # define time dependent coefficients
     At = -0.5*np.sin(2*phase)*(3+np.cos(2*inc))
@@ -504,12 +504,12 @@ def construct_wavelet(t, A, t0, f0, Q, phi0, idx=None):
     # fileter
     if idx is not None:
         wave[~idx] = 0
-    
+
     return wave
 
-def construct_gw_wavelet(psr, gwtheta, gwphi, gwpsi, gweps, 
+def construct_gw_wavelet(psr, gwtheta, gwphi, gwpsi, gweps,
                          gwA, gwt0, gwf0, gwQ, gwphi0):
-    
+
     # define variable for later use
     cosgwtheta, cosgwphi = np.cos(gwtheta), np.cos(gwphi)
     singwtheta, singwphi = np.sin(gwtheta), np.sin(gwphi)
@@ -544,14 +544,14 @@ def construct_gw_wavelet(psr, gwtheta, gwphi, gwpsi, gweps,
 
     return res
 
-        
 
-def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0, 
-                        psi, inc, pdist=None, pphase=None, psrTerm=True, 
-                        evolve=False, phase_approx=True, tref=0, 
+
+def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
+                        psi, inc, pdist=None, pphase=None, psrTerm=True,
+                        evolve=False, phase_approx=True, tref=0,
                         add_random_phase=False):
     """
-    Function to create GW incuced residuals from a SMBMB as 
+    Function to create GW incuced residuals from a SMBMB as
     defined in Ellis et. al 2012,2013. Trys to be smart about it
 
     :param psr: list of pulsar objects for all pulsars
@@ -565,7 +565,7 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
     :param inc: Inclination of GW source [radians]
     :param pdist: Pulsar distance to use other than those in psr [kpc]
     :param pphase: Use pulsar phase to determine distance [radian]
-    :param psrTerm: Option to include pulsar term [boolean] 
+    :param psrTerm: Option to include pulsar term [boolean]
     :param evolve: Option to exclude evolution [boolean]
     :param add_random_phase: Option to include random phase in waveform to break coherence [boolean]
 
@@ -577,7 +577,7 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
     mc *= SOLAR2S         # convert from solar masses to seconds
     dist *= MPC2S    # convert from Mpc to seconds
 
-    # define initial orbital frequency 
+    # define initial orbital frequency
     w0 = np.pi * fgw
     phase0 /= 2 # orbital phase
     w053 = w0**(-5/3)
@@ -594,7 +594,7 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
     omhat = np.array([-singwtheta*cosgwphi, -singwtheta*singwphi, -cosgwtheta])
 
     # various factors invloving GW parameters
-    fac1 = 256/5 * mc**(5/3) * w0**(8/3) 
+    fac1 = 256/5 * mc**(5/3) * w0**(8/3)
     fac2 = 1/32/mc**(5/3)
     fac3 = mc**(5/3)/dist
 
@@ -609,7 +609,7 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
         fcross = (np.dot(m, phat)*np.dot(n, phat)) / (1 + np.dot(omhat, phat))
         cosMu = -np.dot(omhat, phat)
 
-    
+
         # get values from pulsar object
         toas = p.toas - tref
         if pdist is None and pphase is None:
@@ -618,11 +618,11 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
             pd = pphase[ct]/(2*np.pi*fgw*(1-cosMu)) / KPC2S
         else:
             pd = pdist[ct]
-        
+
 
         # convert units
         pd *= KPC2S   # convert from kpc to seconds
-        
+
         # get pulsar time
         tp = toas-pd*(1-cosMu)
 
@@ -636,32 +636,32 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
             # calculate time dependent phase
             phase = phase0 + fac2 * (w053 - omega**(-5/3))
             phase_p = phase0 + fac2 * (w053 - omega_p**(-5/3))
-        
+
         # use approximation that frequency does not evlolve over observation time
         elif phase_approx:
-            
+
             # frequencies
             omega = w0
             omega_p = w0 * (1 + fac1 * pd*(1-cosMu))**(-3/8)
-            
+
             # phases
             phase = phase0 + omega * toas
             if pphase is not None:
                 phase_p = phase0 + pphase[ct] + omega_p * toas
             else:
                 phase_p = phase0 + fac2 * (w053 - omega_p**(-5/3)) + omega_p*toas
-              
+
         # no evolution
-        else: 
-            
+        else:
+
             # monochromatic
             omega = w0
             omega_p = omega
-            
+
             # phases
             phase = phase0 + omega * toas
             phase_p = phase0 + omega * tp
-            
+
         # add random phase?
         if add_random_phase:
             phase += np.random.uniform(0, 2*np.pi)
@@ -694,7 +694,7 @@ def createResidualsFast(psr, gwtheta, gwphi, mc, dist, fgw, phase0,
 def createResidualsFree(psr, gwtheta, gwphi, h, fgw, phase0, psi, inc,
                                pphase0, pfgw, psrTerm=True, tref=0):
     """
-    Function to create GW incuced residuals from a SMBMB as 
+    Function to create GW incuced residuals from a SMBMB as
     defined in Ellis et. al 2012,2013. Trys to be smart about it
 
     :param psr: list of pulsar objects for all pulsars
@@ -707,13 +707,13 @@ def createResidualsFree(psr, gwtheta, gwphi, h, fgw, phase0, psi, inc,
     :param pphase0: pulsar phase
     :param pfgw: pulsar term frequency
     :param inc: Inclination of GW source [radians]
-    :param psrTerm: Option to include pulsar term [boolean] 
+    :param psrTerm: Option to include pulsar term [boolean]
 
     :return: Vector of induced residuals
 
     """
 
-    # define initial orbital frequency 
+    # define initial orbital frequency
     w0 = np.pi * fgw
     phase0 /= 2 # orbital phase
     wp = np.pi * pfgw
@@ -740,11 +740,11 @@ def createResidualsFree(psr, gwtheta, gwphi, h, fgw, phase0, psi, inc,
         fplus = 0.5 * (np.dot(m, phat)**2 - np.dot(n, phat)**2) / (1+np.dot(omhat, phat))
         fcross = (np.dot(m, phat)*np.dot(n, phat)) / (1 + np.dot(omhat, phat))
         cosMu = -np.dot(omhat, phat)
-    
+
         # phases
         phase = phase0 + w0 * (p.toas - tref)
         phase_p = phase0 + pphase0[ct] + wp[ct] * (p.toas - tref)
-            
+
         # define time dependent coefficients
         At = np.sin(2*phase) * incfac1
         Bt = np.cos(2*phase) * incfac2
@@ -779,15 +779,15 @@ def constructShapelet(times, t0, q, amps):
     :param q: width of event
     :param amps: vector of amplitudes for different components
     """
-   
+
     hermcoeff = []
     for ii in range(len(amps)):
         hermcoeff.append(amps[ii] / np.sqrt(2**ii*ss.gamma(ii+1)*np.sqrt(2*np.pi)))
-        
+
     # evaluate hermite polynomial sums
     hermargs = (times-t0)/q
     hval = herm.hermval(hermargs, np.array(hermcoeff)) * np.exp(-hermargs**2/2)
-    
+
     return hval
 
 
@@ -812,7 +812,7 @@ def computeLuminosityDistance(z):
 
     # proper distance function
     properDistance = lambda z: c/H0/np.sqrt(Ol+Om*(1+z)**3)
-    
+
     # carry out numerical integration
     Dp = si.quad(properDistance, 0 ,z)[0]
     Dl = (1+z) * Dp
@@ -840,8 +840,8 @@ def createRmatrix(designmatrix, err):
 
     :param designmatrix: Design matrix as returned by tempo2
 
-    :return: R matrix 
-   
+    :return: R matrix
+
     """
 
     W = np.diag(1/err)
@@ -849,7 +849,7 @@ def createRmatrix(designmatrix, err):
 
     u, s, v = sl.svd((w * designmatrix.T).T,full_matrices=False)
 
-    return np.eye(len(err)) - (1/w * np.dot(u, np.dot(u.T, W)).T).T 
+    return np.eye(len(err)) - (1/w * np.dot(u, np.dot(u.T, W)).T).T
 
 
 def createGmatrix(designmatrix):
@@ -908,10 +908,10 @@ def createDesignmatrix(toas, freqs=None, RADEC=False, PX=False, DMX=False):
             sys.exit()
 
         model += ['DMX' for ii in range(int(len(toas)/2))]
-    
+
     ndim = len(model)
     designmatrix = np.zeros((len(toas), ndim))
-    
+
     for ii in range(ndim):
         if model[ii] == 'QSD':
             designmatrix[:,ii] = toas**(ii)
@@ -919,7 +919,7 @@ def createDesignmatrix(toas, freqs=None, RADEC=False, PX=False, DMX=False):
             designmatrix[:,ii] = np.sin(2*np.pi/3.16e7*toas)
         if model[ii] == 'DEC':
             designmatrix[:,ii] = np.cos(2*np.pi/3.16e7*toas)
-        if model[ii] == 'PX': 
+        if model[ii] == 'PX':
             designmatrix[:,ii] = np.cos(4*np.pi/3.16e7*toas)
         if model[ii] == 'DMX' and freqs is not None:
             designmatrix[:,ii:] = DMXDesignMatrix(toas, freqs, dt=43200)
@@ -947,33 +947,33 @@ def createTimeLags(toa1, toa2, round=True):
     if round:
         hr = 3600. # hour in seconds
         tm = np.where(tm<hr, 0.0, tm)
-        
+
     return tm
 
 def exploderMatrix(times, freqs=None, dt=1.0, flags=None):
     isort = np.argsort(times)
-    
+
     bucket_ref = [times[isort[0]]]
     bucket_ind = [[isort[0]]]
-    
+
     for i in isort[1:]:
         if times[i] - bucket_ref[-1] < dt:
             bucket_ind[-1].append(i)
         else:
             bucket_ref.append(times[i])
             bucket_ind.append([i])
-    
+
     avetoas = np.array([np.mean(times[l]) for l in bucket_ind],'d')
     if flags is not None:
         aveflags = np.array([flags[l[0]] for l in bucket_ind])
     if freqs is not None:
         avefreqs = np.array([np.mean(freqs[l]) for l in bucket_ind],'d')
 
-    
+
     U = np.zeros((len(times),len(bucket_ind)),'d')
     for i,l in enumerate(bucket_ind):
         U[l,i] = 1
-        
+
     if freqs is not None and flags is not None:
         return avetoas, avefreqs, aveflags, U
     elif freqs is not None and flags is None:
@@ -989,15 +989,15 @@ def constructSEkernel(times, lam, amp):
     tm = createTimeLags(times, times)
     K = amp**2 * np.exp(-tm**2/2/lam**2)
 
-    return K    
+    return K
 
 
 def exploderMatrixNoSingles(times, flags, dt=10):
     isort = np.argsort(times)
-    
+
     bucket_ref = [[times[isort[0]], flags[isort[0]]]]
     bucket_ind = [[isort[0]]]
-        
+
     for i in isort[1:]:
         if times[i] - bucket_ref[-1][0] < dt and flags[i] == bucket_ref[-1][1]:
             if 'ABPP-L' in flags[i]:
@@ -1008,22 +1008,22 @@ def exploderMatrixNoSingles(times, flags, dt=10):
         else:
             bucket_ref.append([times[i], flags[i]])
             bucket_ind.append([i])
-        
+
 
     # find only epochs with more than 1 TOA
     bucket_ind2 = [ind for ind in bucket_ind if len(ind) > 2]
-    
+
     avetoas = np.array([np.mean(times[l]) for l in bucket_ind2],'d')
     aveflags = np.array([flags[l[0]] for l in bucket_ind2])
 
-    
+
     U = np.zeros((len(times),len(bucket_ind2)),'d')
     for i,l in enumerate(bucket_ind2):
         U[l,i] = 1
-        
+
     return avetoas, aveflags, U
 
-    
+
 
 def exploderMatrix_slow(toas, freqs=None, dt=1200, flags=None):
     """
@@ -1057,16 +1057,16 @@ def exploderMatrix_slow(toas, freqs=None, dt=1200, flags=None):
 
         U = np.append(U, np.array([newcol]).T, axis=1)
         avetoas = np.append(avetoas, np.mean(toas[dailyind]))
-        
+
         if freqs is not None:
             avefreqs = np.append(avefreqs, np.mean(freqs[dailyind]))
-        
+
         # TODO: what if we have different backends overlapping
         if flags is not None:
             aveflags.append(flags[dailyind][0])
 
         processed[dailyind] = True
-    
+
     if freqs is not None and flags is not None:
         return avetoas, avefreqs, aveflags, U
     elif freqs is not None and flags is None:
@@ -1088,29 +1088,29 @@ def dailyAveMatrix(times, err, dt=10, flags=None):
 
     """
     isort = np.argsort(times)
-    
+
     bucket_ref = [times[isort[0]]]
     bucket_ind = [[isort[0]]]
-    
+
     for i in isort[1:]:
         if times[i] - bucket_ref[-1] < dt:
             bucket_ind[-1].append(i)
         else:
             bucket_ref.append(times[i])
             bucket_ind.append([i])
-    
+
     avetoas = np.array([np.mean(times[l]) for l in bucket_ind],'d')
     if flags is not None:
         aveflags = np.array([flags[l[0]] for l in bucket_ind])
 
-    
+
     U = np.zeros((len(times),len(bucket_ind)))
     aveerr = np.zeros(len(bucket_ind))
     for i,l in enumerate(bucket_ind):
         w = 1/err[l]**2
         aveerr[i] = np.sqrt(1/np.sum(w))
         U[l,i] =  w/np.sum(w)
-        
+
     if flags is not None:
         return avetoas, aveerr, aveflags, U
     else:
@@ -1146,9 +1146,9 @@ def DMXDesignMatrix(toas, freqs, dt=1200):
         newcol[dailyind] = 1.0/freqs[dailyind]**2
 
         M = np.append(M, np.array([newcol]).T, axis=1)
-        
+
         processed[dailyind] = True
-    
+
     return M
 
 
@@ -1175,7 +1175,7 @@ def sumTermCovarianceMatrix_fast(tm, fL, gam):
     Calculate the power series expansion for the Hypergeometric
     function in the standard power law covariance matrix. This
     version uses the Python package numexpr and is much faster
-    that using numpy. For now it is hardcoded to use only the 
+    that using numpy. For now it is hardcoded to use only the
     first 3 terms.
 
     :param tm: Matrix of time lags in years
@@ -1208,31 +1208,31 @@ def createGHmatrix(toa, err, res, G, fidelity, Amp = None):
 
     # forming the error-bar covariance matrix, sandwiched with G matrices
     GCnoiseG = np.dot(G.T,np.dot(np.diag(err**2.0)*np.eye(len(err)),G))
-    
+
     # forming the unscaled (Agwb=1) covariance matrix of GWB-induced residuals
     tm = createTimeLags(toa, toa)
     Cgwb = createRedNoiseCovarianceMatrix(tm, 1, 13/3)
     GCgwbG = np.dot(G.T, np.dot(Cgwb, G))
-    
+
     # approximate the whitening matrix with the inverse root of the marginalised error-bar matrix
     CgwbMargWhite = np.dot(sl.sqrtm(sl.inv(GCnoiseG)).T, \
                     np.dot(GCgwbG, sl.sqrtm(sl.inv(GCnoiseG))))
 
-    # compute the eigendecomposition of the 'whitened' GWB covariance matrix; 
+    # compute the eigendecomposition of the 'whitened' GWB covariance matrix;
     # order the eigenvalues largest first
     eigVal,eigVec = sl.eigh(CgwbMargWhite)
-    idx = eigVal.argsort()[::-1] 
+    idx = eigVal.argsort()[::-1]
     eigVal = eigVal[idx]
     eigVec = eigVec[:,idx]
-    
+
     # computing a rough estimate of the GWB amplitude for a strain-spectrum slope of -2/3
     Tspan = toa.max() - toa.min()
     if Amp is None:
         sigma_gwb = np.std(res) * 1e-15 * 1e9
         Amp = sigma_gwb * 0.89 * Tspan**(-5./3)
     #Amp = (sigma_gwb/(1.37*(10**(-9)))) / (Tspan**(5/3))
-    
-    # looping over eigenvalues until the fidelity criterion of van Haasteren 2013(b) 
+
+    # looping over eigenvalues until the fidelity criterion of van Haasteren 2013(b)
     # is satisfied; only the 'principal' eigenvectors are retained
     fisherelements = eigVal**2 / (1 + Amp**2 * eigVal)**2
     cumev = np.cumsum(fisherelements)
@@ -1241,11 +1241,11 @@ def createGHmatrix(toa, err, res, G, fidelity, Amp = None):
     l = int((np.flatnonzero( (cumev/totrms) >= fidelity )[0] + 1))
     #index = np.amax(np.where(np.cumsum((eigVal/(1+(Amp**2.0)*eigVal))**2.0)/ \
     #                         np.sum((eigVal/(1.0+(Amp**2.0)*eigVal))**2.0).real \
-    #                         <= fidelity)[0]) 
-    
+    #                         <= fidelity)[0])
+
     # forming the data-compression matrix
     H = np.dot(sl.sqrtm(sl.inv(GCnoiseG)).real,eigVec.T[:l].T.real)
-    
+
     return np.dot(G,H)
 
 
@@ -1254,14 +1254,14 @@ def createRedNoiseCovarianceMatrix(tm, Amp, gam, fH=None, fast=False):
     """
     Create red noise covariance matrix. If fH is None, then
     return standard power law covariance matrix. If fH is not
-    none, return power law covariance matrix with high frequency 
+    none, return power law covariance matrix with high frequency
     cutoff.
 
     :param tm: Matrix of time lags in seconds
     :param Amp: Amplitude of red noise in GW units
     :param gam: Red noise power law spectral index
     :param fH: Optional high frequency cutoff in yr^-1
-    :param fast: Option to use Python numexpr to speed 
+    :param fast: Option to use Python numexpr to speed
                     up calculation (default = True)
 
     :return: Red noise covariance matrix in seconds^2
@@ -1270,7 +1270,7 @@ def createRedNoiseCovarianceMatrix(tm, Amp, gam, fH=None, fast=False):
 
     # conversion from seconds to years
     s2yr = 1/3.16e7
-    
+
     # compute high frequency cutoff
     Tspan = tm.max() * s2yr
     fL = 1/(10*Tspan)
@@ -1297,7 +1297,7 @@ def createRedNoiseCovarianceMatrix(tm, Amp, gam, fH=None, fast=False):
 
         # convert amplitude to correct units
         A = Amp**2
- 
+
         EulerGamma=0.577
 
         x = 2*np.pi*fL*tm * s2yr
@@ -1307,7 +1307,7 @@ def createRedNoiseCovarianceMatrix(tm, Amp, gam, fH=None, fast=False):
 
         # introduce a high-frequency cutoff
         xi = (fH/s2yr)/fL
-        
+
         # avoid the gamma singularity at alpha = 1
         if np.abs(alpha - 1) < 1e-6:
             zero = np.log(xi) + (EulerGamma + np.log(0.5 * xi)) * np.log(xi) * (alpha - 1)
@@ -1335,9 +1335,9 @@ def createWhiteNoiseCovarianceMatrix(err, efac, equad, tau=None, tm=None):
     :return: White noise covariance matrix in seconds^2
 
     """
-    
+
     if tau is None and tm is None:
-        corr = efac * np.diag(err**2) + equad**2 * np.eye(np.alen(err)) 
+        corr = efac * np.diag(err**2) + equad**2 * np.eye(np.alen(err))
 
     elif tau is not None and tm is not None:
         sincFunc = np.sinc(2*np.pi*tm/tau)
@@ -1370,7 +1370,7 @@ def dailyAverage(pulsar):
     Function to compute daily averaged residuals such that we
     have one residual per day per frequency band.
 
-    :param pulsar: pulsar class from Michele Vallisneri's 
+    :param pulsar: pulsar class from Michele Vallisneri's
                      libstempo library.
 
     :return: mtoas: Average TOA of a single epoch
@@ -1382,14 +1382,14 @@ def dailyAverage(pulsar):
 
     """
 
-    toas = pulsar.toas()        # days 
+    toas = pulsar.toas()        # days
     res = pulsar.residuals()    # seconds
     err = pulsar.toaerrs * 1e-6 # seconds
     freqs = pulsar.freqs        # MHz
 
     # timescale to do averaging (1 day)
     t_ave = 86400    # s/day
-    
+
     # set up array with one day spacing
     yedges = np.longdouble(np.arange(toas.min(),toas.max()+1,1))
 
@@ -1405,7 +1405,7 @@ def dailyAverage(pulsar):
     mbands = []
     for ii in range(len(yedges)-1):
 
-        # find toa indices that are in bin 
+        # find toa indices that are in bin
         indices = np.flatnonzero(np.logical_and(toas>=yedges[ii], toas<yedges[ii+1]))
 
         # loop over different frequency bands
@@ -1428,14 +1428,14 @@ def dailyAverage(pulsar):
                 mfreqs.append(np.mean(pulsar.freqs[ind]))
                 mbands.append(band)
 
-            
+
     # turn lists into arrays with double precision
     qmatrix = np.double(np.array(qmatrix))
     mtoas = np.double(np.array(mtoas))
     merr = np.double(np.array(merr))
     mfreqs = np.double(np.array(mfreqs))
     mbands = np.array(mbands)
-    
+
     # construct new design matrix without inter band frequency jumps
     dmatrix = np.double(pulsar.designmatrix())[:,0:-pulsar.nJumps]
 
@@ -1455,15 +1455,15 @@ def computeORF(psr):
     # begin loop over all pulsar pairs and calculate ORF
     k = 0
     npsr = len(psr)
-    ORF = np.zeros(npsr*(npsr-1)/2.)
+    ORF = np.zeros(npsr*(npsr-1) // 2)
     phati = np.zeros(3)
     phatj = np.zeros(3)
-    for ll in xrange(0, npsr):
+    for ll in range(0, npsr):
         phati[0] = np.cos(psr[ll].phi) * np.sin(psr[ll].theta)
         phati[1] = np.sin(psr[ll].phi) * np.sin(psr[ll].theta)
         phati[2] = np.cos(psr[ll].theta)
 
-        for kk in xrange(ll+1, npsr):
+        for kk in range(ll+1, npsr):
             phatj[0] = np.cos(psr[kk].phi) * np.sin(psr[kk].theta)
             phatj[1] = np.sin(psr[kk].phi) * np.sin(psr[kk].theta)
             phatj[2] = np.cos(psr[kk].theta)
@@ -1481,7 +1481,7 @@ def computeORFMatrix(psr):
     :param psr: List of pulsar object instances
 
     :return: Matrix that has the ORF values for every pulsar
-             pair with 2 on the diagonals to account for the 
+             pair with 2 on the diagonals to account for the
              pulsar term.
 
     """
@@ -1491,16 +1491,16 @@ def computeORFMatrix(psr):
     ORF = np.zeros((npsr, npsr))
     phati = np.zeros(3)
     phatj = np.zeros(3)
-    for ll in xrange(0, npsr):
+    for ll in range(0, npsr):
         phati[0] = np.cos(psr[ll].phi) * np.sin(psr[ll].theta)
         phati[1] = np.sin(psr[ll].phi) * np.sin(psr[ll].theta)
         phati[2] = np.cos(psr[ll].theta)
 
-        for kk in xrange(0, npsr):
+        for kk in range(0, npsr):
             phatj[0] = np.cos(psr[kk].phi) * np.sin(psr[kk].theta)
             phatj[1] = np.sin(psr[kk].phi) * np.sin(psr[kk].theta)
             phatj[2] = np.cos(psr[kk].theta)
-            
+
             if ll != kk:
                 xip = (1.-np.sum(phati*phatj)) / 2.
                 ORF[ll, kk] = 3.*( 1./3. + xip * ( np.log(xip) -1./6.) )
@@ -1525,7 +1525,7 @@ def twoComponentNoiseLike(Amp, D, c, b=1):
 
     """
 
-    loglike = -0.5 * np.sum(np.log(2*np.pi*(Amp**2*D + 1)) + c**2/(Amp**2*D + 1)) 
+    loglike = -0.5 * np.sum(np.log(2*np.pi*(Amp**2*D + 1)) + c**2/(Amp**2*D + 1))
 
     return loglike
 
@@ -1541,13 +1541,13 @@ def angularSeparation(theta1, phi1, theta2, phi2):
     :return: Angular separation in radians
 
     """
-    
+
     # unit vectors
     rhat1 = np.array([np.sin(theta1)*np.cos(phi1),
-                    np.sin(theta1)*np.sin(phi1), 
+                    np.sin(theta1)*np.sin(phi1),
                     np.cos(theta1)]).flatten()
-    rhat2 = np.array([np.sin(theta2)*np.cos(phi2), 
-                    np.sin(theta2)*np.sin(phi2), 
+    rhat2 = np.array([np.sin(theta2)*np.cos(phi2),
+                    np.sin(theta2)*np.sin(phi2),
                     np.cos(theta2)]).flatten()
 
     cosMu = np.dot(rhat1, rhat2)
@@ -1588,7 +1588,7 @@ def computeNormalizedCovarianceMatrix(cov):
         for jj in range(ndim):
             cnorm[ii,jj] = cov[ii,jj]/np.sqrt(cov[ii,ii]*cov[jj,jj])
 
-    return cnorm 
+    return cnorm
 
 
 def createfourierdesignmatrix(t, nmodes, freq=False, Tspan=None,
@@ -1630,11 +1630,11 @@ def createfourierdesignmatrix(t, nmodes, freq=False, Tspan=None,
     # The sine/cosine modes
     ct = 0
     for ii in range(0, 2*nmodes-1, 2):
-        
+
         F[:,ii] = np.cos(2*np.pi*f[ct]*t)
         F[:,ii+1] = np.sin(2*np.pi*f[ct]*t)
         ct += 1
-    
+
     if freq:
         return F, Ffreqs
     else:
@@ -1667,15 +1667,15 @@ def createGWB(psr, Amp, gam, DM=False, noCorr=False, seed=None, turnover=False, 
     """
     Function to create GW incuced residuals from a stochastic GWB as defined
     in Chamberlin, Creighton, Demorest et al. (2013)
-    
+
     :param psr: pulsar object for single pulsar
     :param Amp: Amplitude of red noise in GW units
     :param gam: Red noise power law spectral index
     :param DM: Add time varying DM as a power law (only valid for single pulsars)
     :param noCorr: Add red noise with no spatial correlations
-    
+
     :return: Vector of induced residuals
-    
+
     """
 
     if seed is not None:
@@ -1683,7 +1683,7 @@ def createGWB(psr, Amp, gam, DM=False, noCorr=False, seed=None, turnover=False, 
 
     # get maximum number of points
     #npts = np.max([len(p.toas) for p in psr])
-    
+
     # get maximum number of epochs
     npts = 300
     #npts = np.max([p.avetoas for p in psr])
@@ -1693,15 +1693,15 @@ def createGWB(psr, Amp, gam, DM=False, noCorr=False, seed=None, turnover=False, 
     # current Hubble scale in units of 1/day
     H0=(2.27e-18)*(60.*60.*24.)
 
-    # create simulated GW time span (start and end times). 
+    # create simulated GW time span (start and end times).
     # Will be slightly larger than real data span
 
     #gw start and end times for entire data set
     start = np.min([p.toas.min() for p in psr]) - 86400
     stop = np.max([p.toas.max() for p in psr]) + 86400
-        
-    # define "how much longer" or howml variable, needed because IFFT 
-    # cannot quite match the value of the integral of < |r(t)|^2 > 
+
+    # define "how much longer" or howml variable, needed because IFFT
+    # cannot quite match the value of the integral of < |r(t)|^2 >
     howml = 10.
 
     # duration of the signal, spanning total time data taken in days
@@ -1758,7 +1758,7 @@ def createGWB(psr, Amp, gam, DM=False, noCorr=False, seed=None, turnover=False, 
     Res_t = np.real(np.fft.ifft(Res_f2)/dt)
 
     #for ll in range(Npulsars):
-    #    for kk in range(Nf):					# copies values into the new array up to Nyquist        
+    #    for kk in range(Nf):					# copies values into the new array up to Nyquist
     #        Res_f2[ll,kk] = Res_f[ll,kk]
 
     #    for jj in range(Nf-2):					# pads the values bigger than Nyquist with frequencies back down to 1. Biggest possible index of this array is 2*Nf-3.
@@ -1772,7 +1772,7 @@ def createGWB(psr, Amp, gam, DM=False, noCorr=False, seed=None, turnover=False, 
     Res = np.zeros((Npulsars, npts))
     res_gw = []
     for ll in range(Npulsars):
-        
+
         Res[ll,:] = Res_t[ll, 10:(npts+10)]
 
         if interpolate:
@@ -1799,7 +1799,7 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
     """
     Function to create GW incuced residuals from a stochastic GWB as defined
     in Chamberlin, Creighton, Demorest et al. (2013)
-    
+
     :param psr: pulsar object for single pulsar
     :param Amp: Amplitude of red noise in GW units
     :param gam: Red noise power law spectral index
@@ -1810,11 +1810,11 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
     :param beta: Spectral index of power spectram for f << f0
     :param power: Fudge factor for flatness of spectrum turnover
     :param npts: Number of points used in interpolation
-    :param howml: Lowest frequency is 1/(howml * T) 
+    :param howml: Lowest frequency is 1/(howml * T)
 
-    
+
     :return: list of residuals for each pulsar
-    
+
     """
 
     if seed is not None:
@@ -1829,10 +1829,10 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
     #gw start and end times for entire data set
     start = np.min([p.toas.min() for p in psr]) - 86400
     stop = np.max([p.toas.max() for p in psr]) + 86400
-        
+
     # duration of the signal
     dur = stop - start
-    
+
     # get maximum number of points
     if npts is None:
         # default to cadence of 2 weeks
@@ -1850,7 +1850,7 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
     else:
         ORF = computeORFMatrix(psr)
 
-    # Define frequencies spanning from DC to Nyquist. 
+    # Define frequencies spanning from DC to Nyquist.
     # This is a vector spanning these frequencies in increments of 1/(dur*howml).
     f=np.arange(0, 1/(2*dt), 1/(dur*howml))
     f[0] = f[1] # avoid divide by 0 warning
@@ -1882,7 +1882,7 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
         Res_f[ll,-1] = 0		    # set Nyquist bin to zero also
 
     # Now fill in bins after Nyquist (for fft data packing) and take inverse FT
-    Res_f2 = np.zeros((Npulsars, 2*Nf-2), complex)    
+    Res_f2 = np.zeros((Npulsars, 2*Nf-2), complex)
     Res_t = np.zeros((Npulsars, 2*Nf-2))
     Res_f2[:,0:Nf] = Res_f[:,0:Nf]
     Res_f2[:, Nf:(2*Nf-2)] = np.conj(Res_f[:,(Nf-2):0:-1])
@@ -1892,7 +1892,7 @@ def createGWB_clean(psr, Amp, gam, noCorr=False, seed=None, turnover=False, \
     Res = np.zeros((Npulsars, npts))
     res_gw = []
     for ll in range(Npulsars):
-        
+
         Res[ll,:] = Res_t[ll, 10:(npts+10)]
         f = interp.interp1d(ut, Res[ll,:], kind='linear')
         res_gw.append(f(psr[ll].toas))
@@ -1923,7 +1923,7 @@ def SetupSkymapPlottingGrid(lmax, skypos):
     on a sky-grid defined by healpy for
     plotting purposes.
     """
-    
+
     harmvals = [[0.0]*(2*ll+1) for ll in range(lmax+1)]
     for ll in range(len(harmvals)):
         for mm in range(len(harmvals[ll])):
@@ -1940,7 +1940,7 @@ def GWpower(clm, harmvals):
     for ll in range(len(harmvals)):
         for mm in range(len(harmvals[ll])):
             Pdist += clm[ ll**2 + mm ] * harmvals[ll][mm]
-    
+
     return Pdist
 
 
@@ -1952,7 +1952,7 @@ def SetupPriorSkyGrid(lmax):
     """
     ngrid_phi = 40
     ngrid_costheta = 40
-    
+
     phi = np.arange(0.0,2.0*np.pi,2.0*np.pi/ngrid_phi)
     theta = np.arccos(np.arange(-1.0,1.0,2.0/ngrid_costheta))
 
@@ -1974,7 +1974,7 @@ def PhysPrior(clm,harm_sky_vals):
     """
     """ngrid_phi = 20
     ngrid_costheta = 20
-    
+
     phi = np.arange(0.0,2.0*np.pi,2.0*np.pi/ngrid_phi)
     theta = np.arccos(np.arange(-1.0,1.0,2.0/ngrid_costheta))
     xx, yy = np.meshgrid(phi,theta)
@@ -1999,7 +1999,7 @@ def PhysPrior(clm,harm_sky_vals):
 
 def fixNoiseValues(ptasignals, vals, pars, bvary=False, verbose=True):
     """
-    Use fixed noise values to read into 
+    Use fixed noise values to read into
     ptasignal dictionary. This will be much
     easier if everything is switched to using
     parids.
@@ -2025,7 +2025,7 @@ def fixNoiseValues(ptasignals, vals, pars, bvary=False, verbose=True):
                                                                      vals[ct])
                     sig['pstart'][0] = vals[ct]
                     sig['bvary'][0] = bvary
-                    
+
             # equad
             if sig['stype'] == 'equad':
                 sig['bvary'][0] = bvary
@@ -2092,7 +2092,7 @@ def python_block_shermor_2D(Z, Nvec, Jvec, Uinds):
     For this version, the residuals need to be sorted properly so that all the
     blocks are continuous in memory. Here, there are n residuals, and k jitter
     parameters.
-    
+
     N = D + U*J*U.T
     calculate: Z.T * N^-1 * Z
     """
@@ -2124,7 +2124,7 @@ def python_block_shermor_2D2(Z, X, Nvec, Jvec, Uinds):
     For this version, the residuals need to be sorted properly so that all the
     blocks are continuous in memory. Here, there are n residuals, and k jitter
     parameters.
-    
+
     N = D + U*J*U.T
     calculate: Z.T * N^-1 * X
     """
@@ -2145,9 +2145,9 @@ def python_block_shermor_2D2(Z, X, Nvec, Jvec, Uinds):
 
     return zNx
 
-def python_block_shermor_0D(r, Nvec, Jvec, Uinds): 
+def python_block_shermor_0D(r, Nvec, Jvec, Uinds):
     """
-    Sherman-Morrison block-inversion for Jitter 
+    Sherman-Morrison block-inversion for Jitter
     :param r:       The timing residuals, array (n)
     :param Nvec:    The white noise amplitude, array (n)
     :param Jvec:    The jitter amplitude, array (k)
@@ -2156,7 +2156,7 @@ def python_block_shermor_0D(r, Nvec, Jvec, Uinds):
     blocks are continuous in memory. Here, there are n residuals, and k jitter
     parameters.
     """
-    
+
     ni = 1/Nvec
     Nx = r/Nvec
     if len(np.atleast_1d(Jvec)) > 1:
@@ -2183,14 +2183,14 @@ def python_block_shermor_1D(r, Nvec, Jvec, Uinds):
     For this version, the residuals need to be sorted properly so that all the
     blocks are continuous in memory. Here, there are n residuals, and k jitter
     parameters.
-    
+
     N = D + U*J*U.T
     calculate: r.T * N^-1 * r, log(det(N))
     """
     ni = 1.0 / Nvec
     Jldet = np.einsum('i->', np.log(Nvec))
     xNx = np.dot(r, r * ni)
-    
+
     if len(np.atleast_1d(Jvec)) > 1:
         for cc, jv in enumerate(Jvec):
             if jv > 0.0:
@@ -2207,23 +2207,23 @@ def python_block_shermor_1D(r, Nvec, Jvec, Uinds):
 def quantize_fast(times, dt=1.0, calci=False):
     """ Adapted from libstempo: produce the quantisation matrix fast """
     isort = np.argsort(times)
-    
+
     bucket_ref = [times[isort[0]]]
     bucket_ind = [[isort[0]]]
-    
+
     for i in isort[1:]:
         if times[i] - bucket_ref[-1] < dt:
             bucket_ind[-1].append(i)
         else:
             bucket_ref.append(times[i])
             bucket_ind.append([i])
-    
+
     t = np.array([np.mean(times[l]) for l in bucket_ind],'d')
-    
+
     U = np.zeros((len(times),len(bucket_ind)),'d')
     for i,l in enumerate(bucket_ind):
         U[l,i] = 1
-    
+
     rv = (t, U)
 
     if calci:
@@ -2240,11 +2240,11 @@ def quantize_split(times, flags, dt=1.0, calci=False):
     argsortTOAs. This is _NOT_ checked.
     """
     isort = np.arange(len(times))
-    
+
     bucket_ref = [times[isort[0]]]
     bucket_flag = [flags[isort[0]]]
     bucket_ind = [[isort[0]]]
-    
+
     for i in isort[1:]:
         if times[i] - bucket_ref[-1] < dt and flags[i] == bucket_flag[-1]:
             bucket_ind[-1].append(i)
@@ -2252,13 +2252,13 @@ def quantize_split(times, flags, dt=1.0, calci=False):
             bucket_ref.append(times[i])
             bucket_flag.append(flags[i])
             bucket_ind.append([i])
-    
+
     t = np.array([np.mean(times[l]) for l in bucket_ind],'d')
-    
+
     U = np.zeros((len(times),len(bucket_ind)),'d')
     for i,l in enumerate(bucket_ind):
         U[l,i] = 1
-    
+
     rv = (t, U)
 
     if calci:
@@ -2305,7 +2305,7 @@ def argsortTOAs(toas, flags, which=None, dt=1.0):
                     colmask = col[isort].astype(np.bool)
                     epmsk = flagmask[colmask]
                     epinds = np.flatnonzero(epmsk)
-                    
+
                     if len(epinds) == epinds[-1] - epinds[0] + 1:
                         # Keys are exclusively in succession
                         pass
@@ -2364,7 +2364,7 @@ def checkTOAsort(toas, flags, which=None, dt=1.0):
                     colmask = col[isort].astype(np.bool)
                     epmsk = flagmask[colmask]
                     epinds = np.flatnonzero(epmsk)
-                    
+
                     if len(epinds) == epinds[-1] - epinds[0] + 1:
                         # Keys are exclusively in succession
                         pass
@@ -2421,7 +2421,7 @@ def checkquant(U, flags, uflagvals=None):
                     rv = False
                     print("WARNING: checkquant found non-continuous blocks")
                     #raise ValueError("quantization matrix epochs not continuous")
-        
+
 
     epochflags = np.sum(collisioncheck > 0, axis=1)
 
@@ -2450,7 +2450,7 @@ def quant2ind(U):
     jitter likelihoods
 
     :param U:       quantization matrix
-    
+
     :return:        Index (basic slicing) version of the quantization matrix
 
     This function assumes that the TOAs have been properly sorted according to
@@ -2482,7 +2482,7 @@ def quantreduce(U, eat, flags, calci=False):
     jflags = []
     for ii, flagval in enumerate(uflagvals):
         flagmask = (flags == flagval)
-        
+
         Umat = U[flagmask, :]
         ecnt = np.sum(Umat, axis=0)
         incepoch = np.logical_or(incepoch, ecnt>1)
@@ -2557,7 +2557,7 @@ def createSignalResponse_pol(pphi, ptheta, gwphi, gwtheta, plus=True, norm=False
     Omega = np.array([-np.sin(gwtheta)*np.cos(gwphi), \
                       -np.sin(gwtheta)*np.sin(gwphi), \
                       -np.cos(gwtheta)])
-    
+
     mhat = np.array([-np.sin(gwphi), np.cos(gwphi), np.zeros(gwphi.shape)])
     nhat = np.array([-np.cos(gwphi)*np.cos(gwtheta), \
                      -np.cos(gwtheta)*np.sin(gwphi), \
@@ -2566,7 +2566,7 @@ def createSignalResponse_pol(pphi, ptheta, gwphi, gwtheta, plus=True, norm=False
     p = np.array([np.cos(pphi)*np.sin(ptheta), \
                   np.sin(pphi)*np.sin(ptheta), \
                   np.cos(ptheta)])
-    
+
     # There is a factor of 3/2 difference between the Hellings & Downs
     # integral, and the one presented in Jenet et al. (2005; also used by Gair
     # et al. 2014). This factor 'normalises' the correlation matrix, but I don't
@@ -2611,16 +2611,16 @@ def almFromClm(clm):
     for ll in range(0, maxl+1):
         for mm in range(-ll, ll+1):
             almindex = hp.Alm.getidx(maxl, ll, abs(mm))
-            
+
             if mm == 0:
                 alm[almindex] += clm[clmindex]
             elif mm < 0:
                 alm[almindex] -= 1j * clm[clmindex] / np.sqrt(2)
             elif mm > 0:
                 alm[almindex] += clm[clmindex] / np.sqrt(2)
-            
+
             clmindex += 1
-    
+
     return alm
 
 
@@ -2645,16 +2645,16 @@ def clmFromAlm(alm):
     for ll in range(0, maxl+1):
         for mm in range(-ll, ll+1):
             almindex = hp.Alm.getidx(maxl, ll, abs(mm))
-            
+
             if mm == 0:
                 clm[clmindex] = alm[almindex].real
             elif mm < 0:
                 clm[clmindex] = - alm[almindex].imag * np.sqrt(2)
             elif mm > 0:
                 clm[clmindex] = alm[almindex].real * np.sqrt(2)
-            
+
             clmindex += 1
-    
+
     return clm
 
 
@@ -2692,7 +2692,7 @@ def mapFromClm(clm, nside):
     """
     npixels = hp.nside2npix(nside)
     pixels = hp.pix2ang(nside, np.arange(npixels), nest=False)
-    
+
     h = np.zeros(npixels)
 
     ind = 0
@@ -2738,15 +2738,15 @@ def clmFromMap(h, lmax):
     npixels = len(h)
     nside = hp.npix2nside(npixels)
     pixels = hp.pix2ang(nside, np.arange(npixels), nest=False)
-    
+
     clm = np.zeros( (lmax+1)**2 )
-    
+
     ind = 0
     for ll in range(lmax+1):
         for mm in range(-ll, ll+1):
             clm[ind] += np.sum(h * real_sph_harm(mm, ll, pixels[1], pixels[0]))
             ind += 1
-            
+
     return clm * 4 * np.pi / npixels
 
 
@@ -2820,11 +2820,11 @@ def CorrBasis(psr_locs, nside=32, direction='origin'):
 def constructPulsarMassFromFile(chain, pars, retSamps=True):
     """
     Construct puslar mass form chain file that uses DD/T2 model
-    
+
     """
 
     # get values
-    m2 = chain[:,list(pars).index('M2')] 
+    m2 = chain[:,list(pars).index('M2')]
     try:
         cosi = np.cos(np.arcsin(chain[:,list(pars).index('SINI')]))
         sini = chain[:,list(pars).index('SINI')]
@@ -2908,85 +2908,85 @@ def get_coupled_ecc_eqns(y, t, mc, q):
     Computes the coupled system of differential
     equations from Peters (1964) and Barack &
     Cutler (2004). This is a system of three variables:
-    
+
     F: Orbital frequency [Hz]
     e: Orbital eccentricity
     gamma: Angle of precession of periastron [rad]
     phase0: Orbital phase [rad]
-    
+
     :param y: Vector of input parameters [F, e, gamma]
     :param t: Time [s]
     :param mc: Chirp mass of binary [Solar Mass]
     :param q: Mass ratio of binary
-    
+
     :returns: array of derivatives [dF/dt, de/dt, dgamma/dt, dphase/dt]
     """
-    
+
     F = y[0]
     e = y[1]
     gamma = y[2]
     phase = y[3]
-    
+
     #total mass
-    m = (((1+q)**2)/q)**(3/5) * mc    
-    
+    m = (((1+q)**2)/q)**(3/5) * mc
+
     dFdt = get_Fdot(F, mc, e)
     dedt = get_edot(F, mc, e)
     dgdt = get_gammadot(F, mc, q, e)
     dphasedt = 2*np.pi*F
-     
+
     return np.array([dFdt, dedt, dgdt, dphasedt])
 
 def solve_coupled_ecc_solution(F0, e0, gamma0, phase0, mc, q, t):
     """
     Compute the solution to the coupled system of equations
-    from from Peters (1964) and Barack & Cutler (2004) at 
+    from from Peters (1964) and Barack & Cutler (2004) at
     a given time.
-    
+
     :param F0: Initial orbital frequency [Hz]
     :param e0: Initial orbital eccentricity
     :param gamma0: Initial angle of precession of periastron [rad]
     :param mc: Chirp mass of binary [Solar Mass]
     :param q: Mass ratio of binary
     :param t: Time at which to evaluate solution [s]
-    
+
     :returns: (F(t), e(t), gamma(t), phase(t))
-    
+
     """
-    
+
     y0 = np.array([F0, e0, gamma0, phase0])
 
     y, infodict = odeint(get_coupled_ecc_eqns, y0, t, args=(mc,q), full_output=True)
-    
+
     if infodict['message'] == 'Integration successful.':
         ret = y
     else:
         ret = 0
-    
+
     return ret
 
 def get_an(n, mc, dl, F, e):
     """
     Compute a_n from Eq. 22 of Taylor et al. (2015).
-    
+
     :param n: Harmonic number
     :param mc: Chirp mass of binary [Solar Mass]
     :param dl: Luminosity distance [Mpc]
     :param F: Orbital frequency of binary [Hz]
     :param e: Orbital Eccentricity
-    
+
     :returns: a_n
-    
+
     """
-    
+
     # convert to seconds
     mc *= SOLAR2S
     dl *= MPC2S
-    
+
     omega = 2 * np.pi * F
-    
+
     amp = n * mc**(5/3) * omega**(2/3) / dl
-    
+
     ret = -amp * (ss.jn(n-2,n*e) - 2*e*ss.jn(n-1,n*e) +
                   (2/n)*ss.jn(n,n*e) + 2*e*ss.jn(n+1,n*e) -
                   ss.jn(n+2,n*e))
@@ -2996,62 +2996,62 @@ def get_an(n, mc, dl, F, e):
 def get_bn(n, mc, dl, F, e):
     """
     Compute b_n from Eq. 22 of Taylor et al. (2015).
-    
+
     :param n: Harmonic number
     :param mc: Chirp mass of binary [Solar Mass]
     :param dl: Luminosity distance [Mpc]
     :param F: Orbital frequency of binary [Hz]
     :param e: Orbital Eccentricity
-    
+
     :returns: b_n
-    
+
     """
-    
+
     # convert to seconds
     mc *= SOLAR2S
-    dl *= MPC2S 
-    
+    dl *= MPC2S
+
     omega = 2 * np.pi * F
-    
+
     amp = n * mc**(5/3) * omega**(2/3) / dl
-        
+
     ret = -amp * np.sqrt(1-e**2) *(ss.jn(n-2,n*e) - 2*ss.jn(n,n*e) +
-                  ss.jn(n+2,n*e)) 
+                  ss.jn(n+2,n*e))
 
     return ret
 
 def get_cn(n, mc, dl, F, e):
     """
     Compute c_n from Eq. 22 of Taylor et al. (2015).
-    
+
     :param n: Harmonic number
     :param mc: Chirp mass of binary [Solar Mass]
     :param dl: Luminosity distance [Mpc]
     :param F: Orbital frequency of binary [Hz]
     :param e: Orbital Eccentricity
-    
+
     :returns: c_n
-    
+
     """
-    
+
     # convert to seconds
     mc *= SOLAR2S
     dl *= MPC2S
-    
+
     omega = 2 * np.pi * F
-    
+
     amp = 2 * mc**(5/3) * omega**(2/3) / dl
-     
-    ret = amp * ss.jn(n,n*e) 
+
+    ret = amp * ss.jn(n,n*e)
 
     return ret
 
 def calculate_splus_scross(nmax, mc, dl, F, e, t, l0, gamma, gammadot, inc):
     """
-    Calculate splus and scross summed over all harmonics. 
-    This waveform differs slightly from that in Taylor et al (2015) 
+    Calculate splus and scross summed over all harmonics.
+    This waveform differs slightly from that in Taylor et al (2015)
     in that it includes the time dependence of the advance of periastron.
-    
+
     :param nmax: Total number of harmonics to use
     :param mc: Chirp mass of binary [Solar Mass]
     :param dl: Luminosity distance [Mpc]
@@ -3063,8 +3063,8 @@ def calculate_splus_scross(nmax, mc, dl, F, e, t, l0, gamma, gammadot, inc):
     :param gammadot: Time derivative of angle of periastron advance [rad/s]
     :param inc: Inclination angle [rad]
 
-    """ 
-    
+    """
+
     n = np.arange(1, nmax)
 
     # time dependent amplitudes
@@ -3092,12 +3092,12 @@ def calculate_splus_scross(nmax, mc, dl, F, e, t, l0, gamma, gammadot, inc):
             np.cos(phasep)/(n*omega+2*gammadot)
     cm = np.cos(phasem)/(n*omega-2*gammadot) - \
             np.cos(phasep)/(n*omega+2*gammadot)
-    
+
 
     splus_n = -0.5 * (1+np.cos(inc)**2) * (an*sp - bn*sm) + \
             (1-np.cos(inc)**2)*cn * np.cos(phase1)
     scross_n = np.cos(inc) * (an*cm - bn*cp)
-        
+
 
     return np.sum(splus_n, axis=1), np.sum(scross_n, axis=1)
 
@@ -3113,7 +3113,7 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
     Taylor et al. (2015) and Barack and Cutler (2004).
 
     WARNING: This residual waveform is only accurate if the
-    GW frequency is not significantly evolving over the 
+    GW frequency is not significantly evolving over the
     observation time of the pulsar.
 
     :param psr: pulsar object
@@ -3132,13 +3132,13 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
     :param pdist: Pulsar distance [kpc]
     :param pphase: Pulsar phase [rad]
     :param pgam: Pulsar angle of periastron [rad]
-    :param psrTerm: Option to include pulsar term [boolean] 
+    :param psrTerm: Option to include pulsar term [boolean]
     :param tref: Fidicuial time at which initial parameters are referenced [s]
     :param check: Check if frequency evolves significantly over obs. time
 
     :returns: Vector of induced residuals
     """
-    
+
     # define variable for later use
     cosgwtheta, cosgwphi = np.cos(gwtheta), np.cos(gwphi)
     singwtheta, singwphi = np.sin(gwtheta), np.sin(gwphi)
@@ -3148,10 +3148,10 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
     m = np.array([singwphi, -cosgwphi, 0.0])
     n = np.array([-cosgwtheta*cosgwphi, -cosgwtheta*singwphi, singwtheta])
     omhat = np.array([-singwtheta*cosgwphi, -singwtheta*singwphi, -cosgwtheta])
-    
+
     res = []
     for ct, p in enumerate(psr):
-        
+
         # use definition from Sesana et al 2010 and Ellis et al 2012
         phat = np.array([np.sin(p.theta)*np.cos(p.phi), np.sin(p.theta)*np.sin(p.phi),\
                 np.cos(p.theta)])
@@ -3159,18 +3159,18 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
         fplus = 0.5 * (np.dot(m, phat)**2 - np.dot(n, phat)**2) / (1+np.dot(omhat, phat))
         fcross = (np.dot(m, phat)*np.dot(n, phat)) / (1 + np.dot(omhat, phat))
         cosMu = -np.dot(omhat, phat)
-        
+
         # get values from pulsar object
         toas = p.toas - tref
-        
+
         if pdist is None:
             pd = p.pdist
         else:
-            pd = pdist[ct]   
+            pd = pdist[ct]
 
         # convert units
-        pd *= KPC2S   
-        
+        pd *= KPC2S
+
         # get pulsar time
         tp = toas - pd * (1-cosMu)
 
@@ -3178,7 +3178,7 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
             # check that frequency is not evolving significantly over obs. time
             y = solve_coupled_ecc_solution(F, e0, gamma0, l0, mc, q,
                                               np.array([0.0,toas.max()]))
-            
+
             # initial and final values over observation time
             Fc0, ec0, gc0, phic0 = y[0,:]
             Fc1, ec1, gc1, phic1 = y[-1,:]
@@ -3192,7 +3192,7 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
                 return np.ones(len(p.toas)) * np.nan
 
 
-        
+
         # get gammadot for earth term
         gammadot = get_gammadot(F, mc, q, e0)
 
@@ -3206,38 +3206,38 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
                 nharm = int(nmax(0.999))
         else:
             nharm = nmax
-        
+
         # no more than 100 harmonics
         nharm = min(nharm, 100)
-        
+
         ##### earth term #####
         splus, scross = calculate_splus_scross(nharm, mc, dist, F, e0, toas,
                                                l0, gamma0, gammadot, inc)
-        
+
         ##### pulsar term #####
         if psrTerm:
             # solve coupled system of equations to get pulsar term values
             y = solve_coupled_ecc_solution(F, e0, gamma0, l0, mc,
                                            q, np.array([0.0, tp.min()]))
-            
+
             # get pulsar term values
             if np.any(y):
                 Fp, ep, gp, phip = y[-1,:]
-                
+
                 # get gammadot at pulsar term
                 gammadotp = get_gammadot(Fp, mc, q, ep)
 
                 # get phase at pulsar
                 if pphase is None:
-                    lp = phip 
+                    lp = phip
                 else:
-                    lp = pphase[ct] 
-                
+                    lp = pphase[ct]
+
                 # get angle of periastron at pulsar
                 if pgam is None:
                     gp = gp
                 else:
-                    gp = pgam[ct] 
+                    gp = pgam[ct]
 
                 # get number of harmonics to use
                 if not isinstance(nmax, int):
@@ -3249,11 +3249,11 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
                         nharm = int(nmax(0.999))
                 else:
                     nharm = nmax
-        
+
                 # no more than 1000 harmonics
                 nharm = min(nharm, 100)
                 splusp, scrossp = calculate_splus_scross(nharm, mc, dist, Fp,
-                                                         ep, toas, lp, gp, 
+                                                         ep, toas, lp, gp,
                                                          gammadotp, inc)
 
                 rr = (fplus*cos2psi - fcross*sin2psi) * (splusp - splus) + \
@@ -3261,11 +3261,11 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
 
             else:
                 rr = np.ones(len(p.toas)) * np.nan
-                
+
         else:
             rr = - (fplus*cos2psi - fcross*sin2psi) * splus - \
                 (fplus*sin2psi + fcross*cos2psi) * scross
-                
+
         res.append(rr)
 
     return res
@@ -3273,7 +3273,7 @@ def compute_eccentric_residuals(psr, gwtheta, gwphi, mc,
 def binresults(x, y, yerr, nbins=20):
 
     xedges = np.linspace(x.min(), x.max(), nbins+1)
-    
+
     xx = 0.5*(xedges[1:] + xedges[:-1])
     newx = []
     newy = []
@@ -3285,7 +3285,7 @@ def binresults(x, y, yerr, nbins=20):
             newy.append(np.average(y[ind], weights=1.0/yerr[ind]**2, ))
             newyerr.append(1.0 / np.sqrt(np.sum(1.0/yerr[ind]**2)))
             newx.append(xx[ll])
-    
+
     return np.array(newx), np.array(newy), np.array(newyerr)
 
 

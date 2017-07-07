@@ -15,19 +15,18 @@ parser.add_option('-A','--Agw',action='store',type='float',dest='Agw',help='GW a
 parser.add_option('-G','--gamGW',action='store',type='float',dest='gam_gw',help='GW spectral index',default=13./3.)
 parser.add_option('-a','--Ared',action='store',type='float',dest='Ared',help='red noise amplitude',default=4e-16)
 parser.add_option('-g','--gamred',action='store',type='float',dest='gam_red',help='red noise spectral index',default=5.001)
-parser.add_option('-n','--npsr',action='store',type='int',dest='npsr',help='number of pulsars',default=17)
 parser.add_option('-T','--tspan',action='store',type='float',dest='tspan',help='Time span (years)',default=20)
 parser.add_option('-r','--nreal',action='store',type='int',dest='nreal',help='Number of realizations per simulation',default=100)
 parser.add_option('-l','--label',action='store',type='int',dest='label',help='label for output files',default=0)
 parser.add_option('-o','--outDir',action='store',type='string',dest='outDir',help='output directory',default='./')
 parser.add_option('-c','--cadence',action='store',type='int',dest='cadence',help='number of points per year',default=20)
 parser.add_option('--seed',action='store',type='int',dest='seed',help='random # seed',default=111)
+parser.add_option('--best', dest='best', action='store', type=int, default=0,
+                   help='Only use best pulsars based on weighted rms (default = 0, use all)')
 parser.add_option('--RADEC',action='store_true',dest='RADEC',help='fit for RA and DEC',default=False)
 parser.add_option('--PX',action='store_true',dest='PX',help='fit for PX',default=False)
 parser.add_option('--DMX',action='store_true',dest='DMX',help='fit for DMX',default=False)
-parser.add_option('--f0',action='store',dest='f0', type='float',help='frequency for spectral break',default=0)
-parser.add_option('--beta',action='store',dest='beta', type='float',help='slope of hc after spectral break',default=1)
-parser.add_option('--power',action='store',dest='power', type='float',help='power to make turnover steeper',default=1)
+parser.add_option('--freq',action='store',dest='freq', type='float',help='frequency',default=1e-8)
 parser.add_option('--redFromFile',action='store_true',dest='redFromFile',
                   help='Read red noise from file',default=False)
 parser.add_option('--bestcase',action='store_true',dest='bestcase',
@@ -38,9 +37,67 @@ parser.add_option('--statuscase',action='store_true',dest='statuscase',
                   help='Status quo case scenario',default=False)
 parser.add_option('--cwcase',action='store_true',dest='cwcase',
                   help='CW case scenario',default=False)
+parser.add_option('--detprob',action='store',dest='detprob',
+                  help='Detection probability',default=0.95, type=float)
 
 # parse arguments
 (opts,args)=parser.parse_args()
+
+def ptSum(N, fp0):
+    """
+    Compute False alarm rate for Fp-Statistic. We calculate
+    the log of the FAP and then exponentiate it in order
+    to avoid numerical precision problems
+    @param N: number of pulsars in the search
+    @param fp0: The measured value of the Fp-statistic
+    @returns: False alarm probability ad defined in Eq (64)
+              of Ellis, Seiemens, Creighton (2012)
+    """
+
+    n = np.arange(0,N)
+
+    return np.sum(np.exp(n*np.log(fp0)-fp0-np.log(ss.gamma(n+1))))
+
+# compute f_p statistic
+def fpStat(psr, f0):
+    """
+    Computes the Fp-statistic as defined in Ellis, Siemens, Creighton (2012)
+
+    :param psr: List of pulsar object instances
+    :param f0: Gravitational wave frequency
+
+    :return: Value of the Fp statistic evaluated at f0
+
+    """
+
+    fstat=0.
+    npsr = len(psr)
+
+    # define N vectors from Ellis et al, 2012 N_i=(x|A_i) for each pulsar
+    N = np.zeros(2)
+    M = np.zeros((2, 2))
+    for ii,p in enumerate(psr):
+
+        # Define A vector
+        A = np.zeros((2, p.ntoa))
+        A[0,:] = 1./f0**(1./3.) * np.sin(2*np.pi*f0*p.toas)
+        A[1,:] = 1./f0**(1./3.) * np.cos(2*np.pi*f0*p.toas)
+
+        N = np.array([np.dot(A[0,:], np.dot(p.invCov, p.res)), \
+                      np.dot(A[1,:], np.dot(p.invCov, p.res))])
+
+        # define M matrix M_ij=(A_i|A_j)
+        for jj in range(2):
+            for kk in range(2):
+                M[jj,kk] = np.dot(A[jj,:], np.dot(p.invCov, A[kk,:]))
+
+        # take inverse of M
+        Minv = np.linalg.inv(M)
+        fstat += 0.5 * np.dot(N, np.dot(Minv, N))
+
+    # return F-statistic
+    return fstat
+
 
 # makeshift pulsar class
 class pulsar(object):
@@ -105,153 +162,109 @@ class pulsar(object):
         return np.sqrt(np.sum(self.res**2*W)/np.sum(W))
 
 
-#### DEFINE UPPER LIMIT FUNCTION #####
-def upperLimitFunc(A_gw, nreal):
+def upperLimitFunc(h, freq, nreal, th=None, ph=None, dist=None, dp=0.95):
     """
-    Compute the value of the Optimal Statistic for different signal realizations
+    Compute the value of the fstat for a range of parameters, with fixed
+    amplitude over many realizations.
 
-    @param A: value of GWB amplitude
-    @param optstat_ref: value of optimal statistic with no injection
+    @param h: value of the strain amplitude to keep constant
+    @param fstat_ref: value of fstat for real data set
+    @param freq: GW frequency
     @param nreal: number of realizations
 
     """
-
-    # creat inverse covariance matrices
-    for ct, p in enumerate(psr):
-
-        # matrix of time lags
-        tm = PALutils.createTimeLags(p.toas, p.toas)
-
-        # GW
-        Cgw = PALutils.createRedNoiseCovarianceMatrix(tm.copy(), A_gw, gam_gw)
-
-        # white noise
-        Cnoise = PALutils.createWhiteNoiseCovarianceMatrix(p.err, 1, 0)
-
-        # red noise
-        if p.Ared:
-            Cnoise += PALutils.createRedNoiseCovarianceMatrix(tm.copy(), p.Ared, p.gred)
-
-
-        # cholesky decomposition of noise
-        u, s, v = np.linalg.svd(Cnoise)
-        p.Cnoise12 = u * np.sqrt(s)
-
-        # combine
-        C = Cgw + Cnoise
-
-        # inverse
-        tmp = np.dot(G[ct].T, np.dot(C, G[ct]))
-
-        p.invCov = np.dot(G[ct], np.dot(np.linalg.inv(tmp), G[ct].T))
-
-
-    # cross covariances
-    SIJ = []
-    k = 0
-    ORF = PALutils.computeORF(psr)
-    for ii in range(npsr):
-        for jj in range(ii+1, npsr):
-
-            # matrix of time lags
-            tm = PALutils.createTimeLags(psr[ii].toas, psr[jj].toas)
-
-            # cross covariance matrix
-            SIJ.append(ORF[k]/2 * PALutils.createRedNoiseCovarianceMatrix(tm.copy(), 1, gam_gw))
-
-            # increment
-            k += 1
-
-
-    # precompute denominator
-    k = 0
-    norm = []
-    opt_filter = []
-    for ii in range(npsr):
-        for jj in range(ii+1, npsr):
-            tmp = np.dot(SIJ[k], psr[jj].invCov)
-            filter = np.dot(psr[ii].invCov, tmp)
-            tmp = np.dot(filter, SIJ[k].T)
-            norm.append(np.trace(tmp))
-            opt_filter.append(filter)
-            k += 1
-
-
+    Tmaxyr = np.array([(p.toas.max() - p.toas.min())/3.16e7 for p in psr]).max()
     count = 0
-    rho = []
-    OS = []
     np.random.seed()
+    hs = []
     for ii in range(nreal):
 
-        #tstart = time.time()
+        # draw parameter values
+        gwtheta = np.arccos(np.random.uniform(-1, 1))
+        gwphi = np.random.uniform(0, 2*np.pi)
+        gwphase = np.random.uniform(0, 2*np.pi)
+        gwinc = np.arccos(np.random.uniform(-1, 1))
+        gwpsi = np.random.uniform(0, np.pi)
+
+        # check to make sure source has not coalesced during observation time
+        coal = True
+        while coal:
+            gwmc = 10**np.random.uniform(7, 10)
+            tcoal = 2e6 * (gwmc/1e8)**(-5/3) * (freq/1e-8)**(-8/3)
+            if tcoal > Tmaxyr:
+                coal = False
+
+
+        # determine distance in order to keep strain fixed
+        gwdist = 4 * np.sqrt(2/5) * (gwmc*4.9e-6)**(5/3) * (np.pi*freq)**(2/3) / h
+
+        # convert back to Mpc
+        gwdist /= 1.0267e14
+
+        # check for fixed sky location
+        if th is not None:
+            gwtheta = th
+        if ph is not None:
+            gwphi = ph
+        if dist is not None:
+            gwdist = dist
+            gwmc = ((gwdist*1.0267e14)/4/np.sqrt(2/5)/(np.pi*freq)**(2/3)*h)**(3/5)/4.9e-6
+
+        # make stochastic background residuals
+        if A_gw:
+            stoch_res = PALutils.createGWB(psr, A_gw, gam_gw)
+
+        if A_red:
+            red_res = PALutils.createGWB(psr, A_red, gam_red, noCorr=True)
 
         # create residuals
-        turnover=False
-        if opts.f0:
-            turnover=True
-
-        ntoa = np.max([len(p.toas) for p in psr])
-        inducedRes = PALutils.createGWB_clean(psr, A_gw, gam_gw,
-                                              turnover=turnover,
-                                              f0=opts.f0,
-                                              beta=opts.beta,
-                                              power=opts.power,
-                                              npts=ntoa)
-
-
-        #print 'Making GWB and red residuals = {0} s'.format(time.time()-tstart)
-
-        #tstart = time.time()
-
-        # create residuals
+        #psr2 = []
         for ct,p in enumerate(psr):
 
-            # make noise for each pulsar
-            w = np.random.randn(len(p.toas))
-            res = np.dot(p.Cnoise12, w)
-            res += inducedRes[ct]
+            #total time span
+            #T = p.toas.max() - p.toas.min()
+            #if 1/T <= freq:
+            inducedRes = PALutils.createResiduals(p, gwtheta, gwphi, gwmc, gwdist, \
+                            freq, gwphase, gwpsi, gwinc, evolve=False, psrTerm=False)
+
+            # make white noise for each pulsar
+            res = np.array([np.random.randn()*error for error in p.err])
+            res += inducedRes
+
+            if A_gw:
+                res += stoch_res[ct]
+            if A_red:
+                res += red_res[ct]
+
+            #psr2.append(p)
 
             # replace residuals in pulsar object
+            #psr2[-1].res = np.dot(R[ct], res)
             p.res = np.dot(R[ct], res)
 
-        #print 'Making full residuals = {0} s'.format(time.time()-tstart)
-
-        #tstart = time.time()
-
-        # construct optimal statstic
-        k = 0
-        top = 0
-        bot = 0
-        for ll in range(npsr):
-            for kk in range(ll+1, npsr):
-
-                # compute numerator of optimal statisic
-                top += np.dot(psr[ll].res, np.dot(opt_filter[k], psr[kk].res))
-
-                # compute trace term
-                bot += norm[k]
-
-                # iterate counter
-                k += 1
-
-
-        # get optimal statistic and SNR
-        optStat = top/bot
-        snr = top/np.sqrt(bot)
-        OS.append(optStat)
-        rho.append(snr)
+        # compute f-statistic
+        #print len(psr), len(psr2)
+        #fpstat = fpStat(psr, freq)
+        feStat = PALutils.feStat(psr, gwtheta, gwphi, freq)
+        if h == 1e-17:
+            hs.append(feStat)
 
         # check to see if larger than in real data
-        if snr > 3:
+        #if ptSum(len(psr), fpstat) < 1e-4:
+        if np.exp(-feStat) < 1e-3:
             count += 1
-
-        #print 'Computing OS = {0} s'.format(time.time()-tstart)
 
     # now get detection probability
     detProb = count/nreal
+    if h == 1e-17:
+        np.savetxt('hs.txt', np.array(hs))
 
+    if dist is not None:
+        print '%e %e %f\n'%(freq, gwmc, detProb)
+    else:
+        print freq, h, detProb
 
-    return detProb, np.array(OS), np.array(rho)
+    return detProb - dp
 
 def parse_pulsar(pname):
 
@@ -280,9 +293,7 @@ def parse_pulsar(pname):
     return theta, phi
 
 
-
 # set constants
-npsr = opts.npsr              # number of pulsars in array
 A_red = opts.Ared             # red noise amplitude (in strain units)
 gam_red = opts.gam_red        # red noise spectral index
 A_gw = opts.Agw               # GW amplitude (strain units)
@@ -347,24 +358,32 @@ if opts.statuscase:
     aomed = np.concatenate((np.zeros(11), aomed))
     aomed = zip(np.double(np.arange(2005,2027)), aomed)
 
+# red pulsar list
+if opts.redFromFile:
+    red_names = np.loadtxt('red_pulsars.txt', dtype='S42', usecols=[0])
+    red_vals = np.loadtxt('red_pulsars.txt', usecols=[1,2])
+    red_dict = {}
+    for rn, rv in zip(red_names, red_vals):
+        red_dict[rn] = rv
+
 # start loop over dates
 dates = np.arange(2006, opts.tspan+2006)
 Nt = len(dates)
-SNR = np.zeros((Nt,Nreal))
-up = np.zeros((Nt,Nreal))
-optimal_stat = np.zeros((Nt,Nreal))
-
 for ct1, date in enumerate(dates):
 
     # initialize pulsar class
     psr = []
-    R = []
+
+    if date > 2026:
+        gbtmed.append((date, gbtmed[-1][1]))
+        for gb in gbtpsrlist:
+            gb['rms'].append((date, gb['rms'][-1][1]))
 
     # add new GBT pulsars
     if date >= 2016:
         for ii in range(2):
             np.random.seed(opts.seed*(ii+1)*int(date))
-            theta = np.arccos(np.random.uniform(np.cos(2.37), np.cos(0)))
+            theta = np.arccos(np.random.uniform(-1, np.cos(0)))
             phi = np.random.uniform(0, 2*np.pi)
             x = {}
             x['name'] = 'J0000+0000'
@@ -383,11 +402,16 @@ for ct1, date in enumerate(dates):
                PX=opts.PX, DMX=opts.DMX,
                 pepoch=2005, gap=True)
 
-            R.append(RR)
 
             psr.append(pulsar(gb['sky'][0], gb['sky'][1], len(err),
                               ut*3.16e7, err*3.16e7, err*1e-6, M,
                               0, 1,freqs, gb['name']))
+
+    if date > 2026:
+        if opts.statuscase:
+            aomed.append((date, aomed[-1][1]))
+        for gb in aopsrlist:
+            gb['rms'].append((date, gb['rms'][-1][1]))
 
     # add new AO pulsars
     if date >= 2016 and opts.statuscase:
@@ -402,6 +426,7 @@ for ct1, date in enumerate(dates):
             x['rms'] = aomed
             aopsrlist.append(x)
 
+
     # AO pulsars
     for gb in aopsrlist:
         if gb['start'] <= date-1:
@@ -411,38 +436,74 @@ for ct1, date in enumerate(dates):
                PX=opts.PX, DMX=opts.DMX,
                 pepoch=2005, gap=True)
 
-            R.append(RR)
-
             psr.append(pulsar(gb['sky'][0], gb['sky'][1], len(err),
                               ut*3.16e7, err*3.16e7, err*1e-6, M,
                               0, 0,freqs, gb['name']))
 
 
-    # number of pulsars
-    npsr = len(psr)
+rmss = [p.err.mean() for p in psr]
+ind = np.argsort(rmss)
+if opts.best:
+    psr = [psr[ii] for ii in ind[:opts.best]]
+    for ct, p in enumerate(psr):
+        print p.name, p.err.mean()*1e6
 
-    # G matrices
-    G = [PALutils.createGmatrix(p.designmatrix) for p in psr]
+# R matrices
+R = [PALutils.createRmatrix(p.designmatrix, p.err) for p in psr]
+
+
+# G matrices
+G = [PALutils.createGmatrix(p.designmatrix) for p in psr]
+
+# creat inverse covariance matrices
+for ct, p in enumerate(psr):
+
+    # matrix of time lags
+    tm = PALutils.createTimeLags(p.toas, p.toas)
+
+    Ared, gred = A_red, gam_red
+    if opts.redFromFile:
+        if p.name in red_dict:
+            Ared = 10**red_dict[p.name][0]
+            gred = red_dict[p.name][1]
+            print 'Setting Ared={}, gred={} for PSR {}'.format(Ared, gred, p.name)
 
     # red noise
-    if A_red:
-        for pp in psr:
-            pp.Ared = A_red
-            pp.gred = gam_red
+    C = PALutils.createRedNoiseCovarianceMatrix(tm.copy(), A_gw, gam_gw)
+    C += PALutils.createRedNoiseCovarianceMatrix(tm.copy(), Ared, gred)
 
-    if opts.redFromFile:
-        for pp in psr:
-            if pp.name in red_dict:
-                pp.Ared = 10**red_dict[pp.name][0]
-                pp.gred = red_dict[pp.name][1]
+    # white
+    C += PALutils.createWhiteNoiseCovarianceMatrix(p.err, 1, 0)
 
-    # run simulations
-    detProb, optimal_stat[ct1,:], SNR[ct1,:] = upperLimitFunc(A_gw, Nreal)
-    sigma = optimal_stat[ct1,:]/SNR[ct1,:]
-    up[ct1,:] = np.sqrt(optimal_stat[ct1,:] + np.sqrt(2)*sigma*ss.erfcinv(2*(1-0.95)))
+    # inverse
+    tmp = np.dot(G[ct].T, np.dot(C, G[ct]))
 
-    print date, npsr, A_gw, detProb
+    p.invCov = np.dot(G[ct], np.dot(np.linalg.inv(tmp), G[ct].T))
 
+
+# compute minimum detectable amplitude
+hhigh = 1e-12
+hlow = 5e-18
+xtol = 1e-17
+freq = opts.freq
+nreal = opts.nreal
+
+# perfrom upper limit calculation
+inRange = False
+while inRange == False:
+
+    try:    # try brentq method
+        h_up = brentq(upperLimitFunc, hlow, hhigh, xtol=xtol, \
+              args=(freq, nreal, None, None, None, opts.detprob))
+        inRange = True
+    except ValueError:      # bounds not in range
+        if hhigh < 1e-10:   # don't go too high
+            hhigh *= 2      # double high strain
+        else:
+            h_up = hhigh    # if too high, just set to upper bound
+            inRange = True
+
+fname = 'upper_{0}_{1}.txt'.format(freq, opts.nreal)
 
 # output data
 if not os.path.exists(opts.outDir):
@@ -451,8 +512,7 @@ if not os.path.exists(opts.outDir):
     except OSError:
         pass
 
+fout = open(opts.outDir + fname, 'w')
+fout.write('%g %g\n'%(freq, h_up))
 
-snrName=opts.outDir+'/snr_data_{0}_{1}_{2}_{3}_{4}.npy'.format(opts.npsr,A_gw,A_red,gam_red,opts.label)
-optName=opts.outDir+'/opt_data_{0}_{1}_{2}_{3}_{4}.npy'.format(opts.npsr,A_gw,A_red,gam_red,opts.label)
-np.save(snrName,SNR)
-np.save(optName,optimal_stat)
+fout.close()
