@@ -318,6 +318,12 @@ elif opts.cwcase:
     aofile = np.genfromtxt('files/ao_pulsar_file_cw.txt', dtype='S42')
     gbtmed = np.loadtxt('files/gbt_med_rms_vals_cw.txt')
 
+# update to status quo case 10/17/2017
+# push wideband receiver back one year
+if opts.statuscase:
+    gbtfile = np.hstack((gbtfile[:,:18], gbtfile[:,17][:, None], gbtfile[:,18:-1]))
+    aofile = np.hstack((aofile[:,:18], aofile[:,17][:, None], aofile[:,18:-1]))
+
 gbtpsrlist = []
 for gp in gbtfile:
     gpf = map(float, gp[1:])
