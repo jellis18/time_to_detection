@@ -305,8 +305,8 @@ if opts.bestcase:
     aofile = np.genfromtxt('files/ao_pulsar_file.txt', dtype='S42')
     gbtmed = np.loadtxt('files/gbt_med_rms_vals.txt')
 elif opts.worstcase:
-    gbtfile = np.genfromtxt('files/gbt_pulsar_file_worst.txt', dtype='S42')
-    aofile = np.genfromtxt('files/ao_pulsar_file_worst.txt', dtype='S42')
+    gbtfile = np.genfromtxt('files/gbt_pulsar_file_worst2.txt', dtype='S42')
+    aofile = np.genfromtxt('files/ao_pulsar_file_worst2.txt', dtype='S42')
     gbtmed = np.loadtxt('files/gbt_med_rms_vals_worst.txt')
 elif opts.statuscase:
     gbtfile = np.genfromtxt('files/gbt_pulsar_file_status.txt', dtype='S42')
