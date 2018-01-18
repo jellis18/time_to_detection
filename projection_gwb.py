@@ -373,6 +373,11 @@ for ct1, date in enumerate(dates):
     # initialize pulsar class
     psr = []
     R = []
+    
+    if date > 2026:
+        gbtmed.append((date, gbtmed[-1][1]))
+        for gb in gbtpsrlist:
+            gb['rms'].append((date, gb['rms'][-1][1]))
 
     # add new GBT pulsars
     if date >= 2016:
@@ -415,6 +420,13 @@ for ct1, date in enumerate(dates):
             x['sky'] = (theta, phi)
             x['rms'] = aomed
             aopsrlist.append(x)
+
+    if date > 2026:
+        if opts.statuscase:
+            aomed.append((date, aomed[-1][1]))
+        for gb in aopsrlist:
+            gb['rms'].append((date, gb['rms'][-1][1]))
+
 
     # AO pulsars
     for gb in aopsrlist:

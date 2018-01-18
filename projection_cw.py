@@ -39,65 +39,11 @@ parser.add_option('--cwcase',action='store_true',dest='cwcase',
                   help='CW case scenario',default=False)
 parser.add_option('--detprob',action='store',dest='detprob',
                   help='Detection probability',default=0.95, type=float)
+parser.add_option('--fap',action='store',dest='fap',
+                  help='False Alarm Probability',default=1e-3, type=float)
 
 # parse arguments
 (opts,args)=parser.parse_args()
-
-def ptSum(N, fp0):
-    """
-    Compute False alarm rate for Fp-Statistic. We calculate
-    the log of the FAP and then exponentiate it in order
-    to avoid numerical precision problems
-    @param N: number of pulsars in the search
-    @param fp0: The measured value of the Fp-statistic
-    @returns: False alarm probability ad defined in Eq (64)
-              of Ellis, Seiemens, Creighton (2012)
-    """
-
-    n = np.arange(0,N)
-
-    return np.sum(np.exp(n*np.log(fp0)-fp0-np.log(ss.gamma(n+1))))
-
-# compute f_p statistic
-def fpStat(psr, f0):
-    """
-    Computes the Fp-statistic as defined in Ellis, Siemens, Creighton (2012)
-
-    :param psr: List of pulsar object instances
-    :param f0: Gravitational wave frequency
-
-    :return: Value of the Fp statistic evaluated at f0
-
-    """
-
-    fstat=0.
-    npsr = len(psr)
-
-    # define N vectors from Ellis et al, 2012 N_i=(x|A_i) for each pulsar
-    N = np.zeros(2)
-    M = np.zeros((2, 2))
-    for ii,p in enumerate(psr):
-
-        # Define A vector
-        A = np.zeros((2, p.ntoa))
-        A[0,:] = 1./f0**(1./3.) * np.sin(2*np.pi*f0*p.toas)
-        A[1,:] = 1./f0**(1./3.) * np.cos(2*np.pi*f0*p.toas)
-
-        N = np.array([np.dot(A[0,:], np.dot(p.invCov, p.res)), \
-                      np.dot(A[1,:], np.dot(p.invCov, p.res))])
-
-        # define M matrix M_ij=(A_i|A_j)
-        for jj in range(2):
-            for kk in range(2):
-                M[jj,kk] = np.dot(A[jj,:], np.dot(p.invCov, A[kk,:]))
-
-        # take inverse of M
-        Minv = np.linalg.inv(M)
-        fstat += 0.5 * np.dot(N, np.dot(Minv, N))
-
-    # return F-statistic
-    return fstat
-
 
 # makeshift pulsar class
 class pulsar(object):
@@ -251,7 +197,7 @@ def upperLimitFunc(h, freq, nreal, th=None, ph=None, dist=None, dp=0.95):
 
         # check to see if larger than in real data
         #if ptSum(len(psr), fpstat) < 1e-4:
-        if np.exp(-feStat) < 1e-3:
+        if np.exp(-feStat) < opts.fap:
             count += 1
 
     # now get detection probability

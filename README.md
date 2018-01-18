@@ -85,7 +85,9 @@ PTA is used in each run.
 * `--label`: Label for output if running multiple copies on a cluster. Only
 for `projection_gwb.py`
 * `--outDir`: Output directory for output files.
-* `--detProb`: Detection probability to use in computation of minimum
+* `--detprob`: Detection probability to use in computation of minimum
+detectable amplitude. Only for `projection_cw.py`.
+* `--fap`: False Alarm Probability to use in computation of minimum
 detectable amplitude. Only for `projection_cw.py`.
 * `--freq`: GW frequency at which to compute minimum detectable amplitude.
 Only for `projection_cw.py`.
